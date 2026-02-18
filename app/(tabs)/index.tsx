@@ -1,98 +1,92 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logout } from '@/store/slices/authSlice';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await dispatch(logout());
+            router.replace('/(auth)/login');
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <ThemedView style={styles.container}>
+      <ThemedView style={styles.header}>
+        <ThemedText type="title">Welcome! 👋</ThemedText>
+        {user && (
+          <ThemedText style={styles.subtitle}>
+            {user.name || 'User'}
+          </ThemedText>
+        )}
+      </ThemedView>
+
+      <ThemedView style={styles.content}>
+        <ThemedText type="subtitle">🎉 You're logged in!</ThemedText>
+        <ThemedText style={styles.description}>
+          This is your MarTech Delivery app home screen.
+        </ThemedText>
+        <ThemedText style={styles.description}>
+          We'll build the full dashboard here in the next steps.
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <ThemedText style={styles.logoutText}>Logout</ThemedText>
+      </TouchableOpacity>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    padding: 24,
+  },
+  header: {
+    marginTop: 60,
+    marginBottom: 32,
+  },
+  subtitle: {
+    fontSize: 18,
+    opacity: 0.7,
+    marginTop: 8,
+  },
+  content: {
+    flex: 1,
+    gap: 16,
+  },
+  description: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  logoutButton: {
+    backgroundColor: '#ef4444',
+    padding: 16,
+    borderRadius: 8,
     alignItems: 'center',
-    gap: 8,
+    marginTop: 'auto',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  logoutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
